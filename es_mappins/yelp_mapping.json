@@ -1,0 +1,325 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": "5",
+      "number_of_replicas": "0",
+      "store": {
+        "type": "default"
+      },
+      "analysis": {
+        "filter": {
+          "porter_stemmer": {
+            "name": "porter",
+            "type": "stemmer"
+          },
+          "s_acronym_en_EN": {
+            "pattern": "((?:[a-zA-Z]\\.)+s\\.?(?=\\s|$))",
+            "type": "pattern_replace",
+            "replacement": "$0\\#"
+          },
+          "acronym_en_EN": {
+            "type": "pattern_capture",
+            "preserve_original": "true",
+            "patterns": [
+              "((?:[a-zA-Z]\\.)+[a-zA-z]\\.?(?=\\s|$))"
+            ]
+          },
+          "shingle_filter_en_EN": {
+            "max_shingle_size": "2",
+            "min_shingle_size": "2",
+            "output_unigrams": "true",
+            "type": "shingle"
+          },
+          "default_stop_words": {
+            "type": "stop",
+            "name": "_english_",
+            "ignore_case": true
+          },
+          "apos_replace_en_EN": {
+            "pattern": ".*\\'$",
+            "type": "pattern_replace",
+            "replacement": ""
+          },
+          "preserve_original_en_EN": {
+            "type": "word_delimiter",
+            "preserver_original": true
+          }
+        },
+        "analyzer": {
+          "default_analyzer": {
+            "filter": [
+              "lowercase",
+              "default_stop_words",
+              "s_acronym_en_EN",
+              "acronym_en_EN",
+              "asciifolding",
+              "shingle_filter_en_EN"
+            ],
+            "char_filter": [
+              "quotes_en_EN"
+            ],
+            "type": "custom",
+            "tokenizer": "standard"
+          }
+        },
+        "char_filter": {
+          "quotes_en_EN": {
+            "type": "mapping",
+            "mappings": [
+              "\\u0091=>\\u0027",
+              "\\u0092=>\\u0027",
+              "\\u2018=>\\u0027",
+              "\\u2019=>\\u0027"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "mappings": {
+    "business": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "neighborhoods": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "full_address": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "city": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "state": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "location": {
+          "type": "geo_point"
+        },
+        "stars": {
+          "type": "float"
+        },
+        "business_review_count": {
+          "type": "long"
+        },
+        "categories": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "attributes": {
+          "type": "object"
+        },
+        "opening_hours": {
+          "type": "nested",
+          "properties": {
+            "day": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "opening_time": {
+              "type": "date",
+              "format": "HH:mm"
+            },
+            "closing_time": {
+              "type": "date",
+              "format": "HH:mm"
+            }
+          }
+        }
+      }
+    },
+    "checkin": {
+      "_parent": {
+        "type": "business"
+      },
+      "properties": {
+        "checkin_info": {
+          "type": "nested",
+          "properties": {
+            "window_start": {
+              "type": "date",
+              "format": "HH:mm"
+            },
+            "day": {
+              "type": "integer"
+            },
+            "count": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "tip": {
+      "_parent": {
+        "type": "business"
+      },
+      "properties": {
+        "content": {
+          "type": "string",
+          "analyzer": "default_analyzer"
+        },
+        "polarity": {
+          "type": "object",
+          "properties": {
+            "positive": {
+              "type": "float"
+            },
+            "negative": {
+              "type": "float"
+            },
+            "neutral": {
+              "type": "float"
+            },
+            "compound": {
+              "type": "float"
+            }
+          }
+        },
+        "tip_user_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "tip_date": {
+          "type": "date",
+          "format": "yyyy-MM-dd"
+        },
+        "likes": {
+          "type": "long"
+        }
+      }
+    },
+    "photo": {
+      "_parent": {
+        "type": "business"
+      },
+      "properties": {
+        "caption": {
+          "type": "string",
+          "analyzer": "default_analyzer"
+        },
+        "neuraltalk_caption": {
+          "type": "string",
+          "analyzer": "default_analyzer"
+        },
+        "label": {
+          "type": "string",
+          "analyzer": "default_analyzer"
+        }
+      }
+    },
+    "user": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "user_review_count": {
+          "type": "long"
+        },
+        "average_stars": {
+          "type": "float"
+        },
+        "user_votes": {
+          "type": "nested",
+          "properties": {
+            "vote_type": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "count": {
+              "type": "long"
+            }
+          }
+        },
+        "friends": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "yelping_since": {
+          "type": "date",
+          "format": "yyyy-MM"
+        },
+        "elite": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "compliments": {
+          "type": "nested",
+          "properties": {
+            "compliment_type": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "num_compliments": {
+              "type": "long"
+            }
+          }
+        },
+        "fans": {
+          "type": "long"
+        }
+      }
+    },
+    "review": {
+      "_parent": {
+        "type": "business"
+      },
+      "properties": {
+        "review_user_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "review_stars": {
+          "type": "float"
+        },
+        "content": {
+          "type": "string",
+          "analyzer": "default_analyzer"
+        },
+        "polarity": {
+          "type": "object",
+          "properties": {
+            "positive": {
+              "type": "float"
+            },
+            "negative": {
+              "type": "float"
+            },
+            "neutral": {
+              "type": "float"
+            },
+            "compound": {
+              "type": "float"
+            }
+          }
+        },
+        "review_date": {
+          "type": "date",
+          "format": "yyyy-MM-dd"
+        },
+        "review_votes": {
+          "type": "nested",
+          "properties": {
+            "vote_type": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "count": {
+              "type": "long"
+            }
+          }
+        }
+      }
+    }
+  }
+}
